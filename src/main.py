@@ -6,8 +6,7 @@ from blocks import markdown_to_html_node
 
 
 def main():
-    copy_static(src_path="static",
-                destination_path="public")
+    generate_pages_recursive("content", "template.html",  "public")
 
 
 def copy_static(src_path, destination_path):
@@ -55,24 +54,53 @@ def generate_page(from_path, template_path, dest_path):
         template = f.read()
     html_title = extract_title(md)
     html_content = markdown_to_html_node(md).to_html()
-    # Use html_template and fill in the title and the content
+
     temp_template = template.replace("{{ Title }}", html_title).replace(
         "{{ Content }}", html_content)
-    # print(temp_template)
 
-    # copy file to public/index.html
-    if os.path.exists(dest_path):
-        print("File already exists")
-        with open(dest_path, "w") as f:
-            f.write(temp_template)
-    else:
-        print("I'm clearly forgetting something")
-        # new_dict = os.makedirs(os.path.dirname(dest_path))
-        # new_path = os.path.join(dest_path, "index.html")
-        with open(dest_path, "w") as f:
-            f.write(temp_template)
+    with open(dest_path, "w") as f:
+        f.write(temp_template)
 
 
-generate_page("content/index.md", "template.html", "public/index.html")
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    if os.path.exists("public/majesty"):
+        shutil.rmtree("public/majesty")
 
-# main()
+    os.makedirs(dest_dir_path, exist_ok=True)
+
+    entries = os.listdir(dir_path_content)
+    for entry in entries:
+        entry_path = os.path.join(dir_path_content, entry)
+
+        if os.path.isfile(entry_path) and entry.endswith(".md"):
+            with open(entry_path, "r") as f:
+                md = f.read()
+            with open(template_path, "r") as f:
+                template = f.read()
+
+            html_title = extract_title(md)
+            html_content = markdown_to_html_node(md).to_html()
+
+            temp_template = template.replace("{{ Title }}", html_title).replace(
+                "{{ Content }}", html_content)
+
+            rel_path = os.path.relpath(entry_path, dir_path_content)
+            destination_path = os.path.join(
+                dest_dir_path, rel_path).replace(".md", ".html")
+            destination_dir = os.path.dirname(destination_path)
+
+            os.makedirs(destination_dir, exist_ok=True)
+
+            with open(destination_path, "w") as f:
+                f.write(temp_template)
+
+        elif os.path.isdir(entry_path):
+            rel_path = os.path.relpath(entry_path, dir_path_content)
+            temp_path = os.path.join(dest_dir_path, rel_path)
+
+            os.makedirs(temp_path, exist_ok=True)
+
+            generate_pages_recursive(entry_path, template_path, temp_path)
+
+
+main()
