@@ -1,0 +1,21 @@
+What is the call stack for the function on nested nodes?
+
+grandchild_node = LeafNode("b", "grandchild")
+child_node = ParentNode("span", [grandchild_node])
+parent_node = ParentNode("div", [child_node])
+
+print(parent_node.to_html())
+
+
+Call Order
+parent_node -> to_html(): ParentNode.to_html(children:ParentNode)
+child_node -> to_hmtl(): ParentNode.to_html(children: LeafNode)
+grandchild_node -> to_html(): LeafNode.to_html()
+
+Call Stack
+LeafNode("b", "grandchild").to_html() -> html_text = "<b>grandchild</b>"
+ParentNode("span", [grandchild_node]).to_html() -> <tags> + hmtl_text_grandchild + </tags> -> "<span><b>grandchild</b></span>""
+ParentNode("div", [child_node]).to_html() -> <tags> + html_text_child +</tags> -> "<div><span><b>grandchild</b></span></div>"
+
+Result
+"<div><span><b>grandchild</b></span></div>"
