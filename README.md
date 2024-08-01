@@ -1,3 +1,2 @@
-# bookbot
+# Static Site Generator
 
-Bookbot is my first project!
